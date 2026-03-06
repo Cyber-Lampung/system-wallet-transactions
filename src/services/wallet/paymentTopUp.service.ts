@@ -8,12 +8,33 @@ import craetingUUID from "../../utils/creatingUuid.js";
 
 export default async function topUpPaymentService(
   user_id: string,
+  type_payment: string,
+  to_wallet: string,
   role: string,
   topup_balance: number | bigint,
 ): Promise<paymentResponse | undefined> {
-  // if (!role || role !== "users" || "admin") {
-  //   return { status: false, message: "role tidak ditemukan" };
-  // }
+  const validasiPayment =
+    type_payment === "dana" || type_payment === "bank" ? true : false;
+
+  const validasiRole = role === "users" || role === "admin" ? true : false;
+
+  if (!validasiPayment) {
+    return {
+      status: false,
+      message: "type payment bermasalah, silahkan pilih yang benar",
+    };
+  }
+
+  if (!to_wallet) {
+    return { status: false, message: "invalid, to wallet harus diisi" };
+  }
+
+  if (!validasiRole) {
+    return {
+      status: false,
+      message: "invalid topUp, silahkan coba lagi nanti",
+    };
+  }
 
   if (!user_id) {
     return { status: false, message: "invalid, user_id is not found" };
@@ -44,6 +65,7 @@ export default async function topUpPaymentService(
       const saveRiwayatTopUp = await saveRiwayatTopUpModel(
         riwayat_topup,
         wallet.wallet_id,
+        type_payment,
         user_id,
         topup_balance,
       );

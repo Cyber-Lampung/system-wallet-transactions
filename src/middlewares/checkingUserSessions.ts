@@ -33,6 +33,12 @@ export default async function cehckingUserSessions(
     // validasi jwt
     const validasiJwt = await jwt.verify(accessToken, SECRET);
 
+    if (!validasiJwt) {
+      return res
+        .status(401)
+        .json({ status: false, message: "invalid user not authorized" });
+    }
+
     if (typeof validasiJwt === "object") {
       req.user_id = validasiJwt.user_id;
       req.role = validasiJwt.role;

@@ -1,12 +1,17 @@
-import type { RowDataPacket } from "mysql2";
+import type {
+  RowDataPacket,
+  ResultSetHeader,
+  PoolConnection,
+} from "mysql2/promise";
 import { db } from "../../config/db.config.js";
 
 export async function balanceCheckModel(
   user_id: string,
+  balance_send: bigint,
 ): Promise<RowDataPacket[]> {
   const [result] = await db.execute<RowDataPacket[]>(
-    "select balance from WalletAccount where user_id = ?",
-    [user_id],
+    "select balance from WalletAccount where user_id = ? and balance > ?",
+    [user_id, balance_send],
   );
 
   return result;
@@ -33,3 +38,18 @@ export async function getWalletIdWhereUserIdModel(
 
   return result;
 }
+
+export async function decreaseBalanceModel(
+  connection: PoolConnection,
+  user_id: string,
+  balance_send: bigint,
+): Promise<ResultSetHeader> {
+  const [result] = await connection.query<ResultSetHeader>(
+    "update WalletAccount set balance = balance - ? where user_id = ? and balance >= ?",
+    [balance_send, user_id, balance_send],
+  );
+
+  return result;
+}
+
+export async function name() {}

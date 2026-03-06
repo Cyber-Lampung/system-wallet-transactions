@@ -6,6 +6,7 @@ export interface paymentResponse {
 export interface tranfersResponse {
   status: boolean;
   message: string;
+  total_transfers: bigint;
 }
 
 export interface BalanceTransfersType {

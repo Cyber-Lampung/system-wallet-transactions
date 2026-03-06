@@ -18,7 +18,8 @@ export default async function userRegisterService(
   email: string,
   username: string,
   password: string,
-): Promise<RegisterResponseService> {
+  publicKey: string,
+): Promise<RegisterResponseService | undefined> {
   if (!email || !username || !password) {
     throw new HttpError(400, "invalid, values is not values");
   }
@@ -40,10 +41,10 @@ export default async function userRegisterService(
   const passwordHash: string = await hashPassword(password);
   console.timeEnd("hashPassword");
   const user_id: string = await craetingUUID();
+  const publicKeyId: string = await craetingUUID();
   const role: string = "users";
   const balance: number = 0;
   const refreshToken: string = await craetingUUID();
-  const RsaPrivateKey_id: string = await craetingUUID();
 
   // creating wallet address
   const walletId = await creatingWalletAddressService(user_id);
@@ -67,29 +68,15 @@ export default async function userRegisterService(
   if (creatingAccount.affectedRows > 0 && saveWalletAddress.affectedRows > 0) {
     // RSA key
 
-    const rsaKey = await creatingRsaKey();
+    const saveRsaKey = await saveRsaKeyModel(publicKeyId, user_id, publicKey);
 
-    if (typeof rsaKey === "object" && "privateKey" in rsaKey) {
-      const RsaPrivateKey: string = rsaKey.privateKey as string;
-
-      if (!RsaPrivateKey) {
-        return { status: false, message: "invalid rsa private key" };
-      }
-
-      const saveRsaKey = await saveRsaKeyModel(
-        RsaPrivateKey_id,
-        user_id,
-        RsaPrivateKey,
-      );
-
-      // console.log(saveRsaKey);
-    }
-
-    return {
-      status: true,
-      message: "success registerasi accounts and creating wallet address",
-      data: { accessToken, refreshToken },
-    };
+    // if (saveRsaKey.affectedRows > 0) {
+    //   return {
+    //     status: true,
+    //     message: "success registerasi accounts and creating wallet address",
+    //     data: { accessToken, refreshToken },
+    //   };
+    // }
   } else {
     return {
       status: false,

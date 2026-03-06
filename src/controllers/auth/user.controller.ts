@@ -1,16 +1,22 @@
 import type { Request, Response, NextFunction } from "express";
 import type { User } from "../../types/user.types.js";
 import userRegisterService from "../../services/auth/userRegister.service.js";
+import userLoginService from "../../services/auth/userLogin.service.js";
 
-export default async function userRegisterControllers(
+export async function userRegisterControllers(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const { email, username, password } = req.body as User;
+    const { email, username, password, publicKey } = req.body as User;
 
-    const resService = await userRegisterService(email, username, password);
+    const resService = await userRegisterService(
+      email,
+      username,
+      password,
+      publicKey,
+    );
 
     if (typeof resService === "object") {
       if (
@@ -24,7 +30,7 @@ export default async function userRegisterControllers(
           {
             httpOnly: true,
             secure: false,
-            maxAge: 15 * 60 * 1000, // 15 menit
+            maxAge: 5 * 60 * 1000, // 15 menit
             sameSite: "strict",
           },
         );
@@ -50,5 +56,53 @@ export default async function userRegisterControllers(
       status: false,
       message: error.message || "Internal Server Error",
     });
+  }
+}
+
+export async function userLoginControllers(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { email, password } = req.body;
+
+  const resService = await userLoginService(email, password);
+
+  if (
+    typeof resService === "object" &&
+    "status" in resService &&
+    "message" in resService &&
+    "data" in resService
+  ) {
+    // res cookie
+    if (
+      typeof resService.data === "object" &&
+      "accessToken" in resService.data &&
+      "refreshToken" in resService.data
+    ) {
+      res.cookie("accessToken", resService.data?.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "dev" ? false : true,
+        path: "/",
+        maxAge: 15 * 60 * 60 * 1000,
+      });
+
+      res.cookie("refreshToken", resService.data?.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "dev" ? false : true,
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+    }
+
+    if (resService.status) {
+      return res
+        .status(200)
+        .json({ status: resService.status, message: resService.message });
+    } else {
+      return res
+        .status(404)
+        .json({ status: resService.status, message: resService.message });
+    }
   }
 }

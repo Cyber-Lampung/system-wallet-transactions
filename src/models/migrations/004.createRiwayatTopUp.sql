@@ -1,6 +1,7 @@
 create table RiwayatTopUp (
     riwayat_id varchar(100),
     wallet_id varchar(100),
+    type_payment VARCHAR(10),
     user_id varchar(100),
     riwayat_topup bigint,
     topup_time datetime default current_timestamp,

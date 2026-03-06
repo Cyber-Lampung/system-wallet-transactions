@@ -6,6 +6,12 @@ export interface RegisterResponseService {
   data?: object;
 }
 
+export interface userLoginResponseService {
+  status: boolean;
+  message: string;
+  data?: object;
+}
+
 export interface CustomsResponse {
   status: number;
   valid: boolean;

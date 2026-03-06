@@ -18,18 +18,29 @@ export default async function topUpPaymentControllers(
   next: NextFunction,
 ) {
   try {
-    const user_id = req.user_id as string;
+    const user_id =
+      req.user_id || ("ad510c33-9bba-401b-ae75-77f1d059e150" as string);
     const role = req.role as string;
 
-    const { topup_balance } = req.body as Balance;
+    const { type_payment, to_wallet, topup_balance } = req.body as Balance;
 
-    const resService = await topUpPaymentService(user_id, role, topup_balance);
+    const resService = await topUpPaymentService(
+      user_id,
+      type_payment,
+      to_wallet,
+      role,
+      topup_balance,
+    );
 
-    if (!resService) {
-      return { status: false, message: "" };
+    if (resService?.status) {
+      return res
+        .status(201)
+        .json({ status: resService?.status, message: resService?.message });
+    } else {
+      return res
+        .status(400)
+        .json({ status: resService?.status, message: resService?.message });
     }
-
-    res.status(201).json({ status: true, message: resService.message });
 
     // return { status: true, message: resService.message };
   } catch (error: any) {

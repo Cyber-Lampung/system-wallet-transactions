@@ -4,5 +4,5 @@ create table Sessions (
     created datetime default CURRENT_TIMESTAMP,
     expires datetime,
     PRIMARY KEY(refreshToken),
-    FOREIGN KEY(user_id) REFERENCES Users(user_id)
+    foreign KEY(user_id) REFERENCES Users(user_id)
 )
